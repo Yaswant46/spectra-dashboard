@@ -30,7 +30,7 @@ _Your configuration-driven sales planning tool._
 @st.cache_data
 def load_data():
     # Replace with your actual published Google Sheets CSV link
-    url = "https://docs.google.com/spreadsheets/d/e/YOUR_EXPORT_LINK/pub?gid=0&single=true&output=csv"
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRY9MtX0JNjOesEkpkyAtul0Im5QEqoToHSvwQizL_oGVdR_uwXNXVVXIupg7BuhOwMiA3S0FCiHNEk/pub?gid=1300259633&single=true&output=csv"
     df = pd.read_csv(url)
     df['Month'] = pd.to_datetime(df['Month'])
     return df
