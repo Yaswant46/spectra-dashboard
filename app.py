@@ -30,7 +30,7 @@ _Your configuration-driven sales planning tool._
 @st.cache_data
 def load_data():
     # Replace with your actual published Google Sheets CSV link
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRY9MtX0JNjOesEkpkyAtul0Im5QEqoToHSvwQizL_oGVdR_uwXNXVVXIupg7BuhOwMiA3S0FCiHNEk/pub?gid=1300259633&single=true&output=csv"
+    url = "https://docs.google.com/spreadsheets/d/e/YOUR_EXPORT_LINK/pub?gid=0&single=true&output=csv"
     df = pd.read_csv(url)
     df['Month'] = pd.to_datetime(df['Month'])
     return df
@@ -41,18 +41,29 @@ except:
     st.error("❌ Unable to load forecast data. Check your sheet link or publish settings.")
     st.stop()
 
+# --- PREPROCESS ---
+if 'Zone' not in df.columns:
+    df['Zone'] = 'South'  # Default if missing
+
+# Add India aggregate
+df_india = df.copy()
+df_india['Zone'] = 'India'
+df = pd.concat([df, df_india], ignore_index=True)
+
 # --- SIDEBAR FILTERS ---
 with st.sidebar:
     st.header("🎛️ Filters")
-    showroom = st.selectbox("Select Showroom", sorted(df["Showroom ID"].unique()))
-    variant = st.selectbox("Select Variant", sorted(df["Variant"].unique()))
+    zone = st.selectbox("Select Zone", sorted(df["Zone"].unique()))
+    showroom = st.selectbox("Select Showroom", sorted(df[df['Zone'] == zone]["Showroom ID"].unique()))
+    variant = st.selectbox("Select Variant", sorted(df[df['Zone'] == zone]["Variant"].unique()))
     show_table = st.checkbox("Show Forecast Table", value=True)
 
 # --- FILTERED DATA ---
-df_filtered = df[(df["Showroom ID"] == showroom) & (df["Variant"] == variant)].sort_values("Month")
+df_filtered = df[(df["Zone"] == zone) & (df["Showroom ID"] == showroom) & (df["Variant"] == variant)]
+df_filtered = df_filtered.sort_values("Month")
 
 # --- FAN CHART ---
-st.subheader(f"📈 Forecast Fan Chart for {variant} at {showroom}")
+st.subheader(f"📈 Forecast Fan Chart for {variant} at {showroom} ({zone})")
 fig = go.Figure()
 fig.add_trace(go.Scatter(
     x=df_filtered['Month'], y=df_filtered['Forecast'], mode='lines+markers',
